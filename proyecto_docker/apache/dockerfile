@@ -1,0 +1,7 @@
+FROM httpd:2.4
+
+# Copiar el archivo httpd.conf ya unificado
+COPY httpd.conf /usr/local/apache2/conf/httpd.conf
+
+# Copiar los archivos estáticos del landing
+COPY landing/ /usr/local/apache2/htdocs/landing/

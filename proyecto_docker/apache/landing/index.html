@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MMCCSemillero</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      height: 100%;
+      font-family: 'Arial', sans-serif;
+      scroll-behavior: smooth;
+      background-color: #000; /* Fondo negro */
+      color: white; /* Texto blanco */
+    }
+
+    .hero {
+      height: 100vh;
+      background: url('https://via.placeholder.com/1600x900') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      position: relative;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: rgba(0, 0, 0, 0.5);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 10;
+    }
+
+    .navbar .logo {
+      height: 40px; /* Altura del logo - ajustar según necesidad */
+      width: auto; /* Mantiene proporción de la imagen */
+    }
+
+    .login-btn {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background-color: #00aaff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+      text-decoration: none;
+    }
+
+    .center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 5;
+    }
+
+    .center-text h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .scroll-down {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1rem;
+      color: white;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .about-section {
+      padding: 4rem 2rem;
+      background-color: #f9f9f9;
+      text-align: center;
+      color: #333;
+    }
+
+    .about-section h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .about-section p {
+      max-width: 600px;
+      margin: 0 auto;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="navbar">
+      <!-- Reemplaza "images/milogo.png" con la ruta correcta a tu imagen de logo -->
+      <img src="images/logo.png" alt="Logo de la empresa" class="logo">
+      <a href="/login" class="login-btn">Login</a>
+    </div>
+
+    <div class="center-text">
+      <h1>Bienvenidos a la pagina del semillero MMCC</h1>
+      <p>Ingrese para ver otras funcionalidades</p>
+    </div>
+
+    <a href="#about" class="scroll-down">? Acerca de nosotros</a>
+  </div>
+
+  <div class="about-section" id="about">
+    <h2>Acerca de nosotros</h2>
+    <p>
+      Semillero dirigido por el profesor Alexander Arias, dirigido a los diferentes estudiantes de la escuela de ingenieria, proyectado a proyectos con bases en el analisis matematico unido con las ciencias practicas y con algunos toques de Ingenieria Electronica.
+    </p>
+  </div>
+
+</body>
+</html>

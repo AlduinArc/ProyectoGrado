@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Archivos - {{ username }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .file-list {
+            margin: 20px 0;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+        .file-item:hover {
+            background-color: #f9f9f9;
+        }
+        .file-actions button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .editor-container {
+            margin-top: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .button-group {
+            margin: 10px 0;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button.delete {
+            background-color: #f44336;
+        }
+        button.edit {
+            background-color: #2196F3;
+        }
+        button.view {
+            background-color: #ff9800;
+        }
+        .notification {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gestor de Archivos - {{ username }}</h1>
+        <p>Directorio: /home/{{ username }}/public_html</p>
+        
+        <div id="notification" class="notification" style="display: none;"></div>
+        
+        <div class="button-group">
+            <button onclick="showCreateForm()">Crear Nuevo Archivo</button>
+        </div>
+        
+        <div id="create-form" style="display: none;">
+            <h3>Crear Nuevo Archivo</h3>
+            <input type="text" id="new-filename" placeholder="nombre_archivo.txt">
+            <button onclick="createFile()">Crear</button>
+            <button onclick="hideCreateForm()">Cancelar</button>
+        </div>
+        
+        <div class="file-list">
+            <h3>Archivos Existentes</h3>
+            <div id="files-container">
+                <!-- Los archivos se cargarán aquí -->
+            </div>
+        </div>
+        
+        <div id="editor-container" class="editor-container" style="display: none;">
+            <h3 id="editor-title">Editando: </h3>
+            <textarea id="file-content"></textarea>
+            <div class="button-group">
+                <button onclick="saveFile()">Guardar</button>
+                <button onclick="closeEditor()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFile = null;
+        
+        // Cargar archivos al iniciar
+        window.onload = function() {
+            loadFiles();
+        };
+        
+        // Mostrar formulario de creación
+        function showCreateForm() {
+            document.getElementById('create-form').style.display = 'block';
+        }
+        
+        // Ocultar formulario de creación
+        function hideCreateForm() {
+            document.getElementById('create-form').style.display = 'none';
+            document.getElementById('new-filename').value = '';
+        }
+        
+        // Cargar lista de archivos
+        function loadFiles() {
+            const username ="{{ username }}";
+            fetch('/list_files?user=${ username }')
+                .then(response => response.json())
+                .then(files => {
+                    const container = document.getElementById('files-container');
+                    container.innerHTML = '';
+                    
+                    if (files.length === 0) {
+                        container.innerHTML = '<p>No hay archivos en este directorio.</p>';
+                        return;
+                    }
+                    
+                    files.forEach(file => {
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        
+                        fileItem.innerHTML = `
+                            <span>${file}</span>
+                            <div class="file-actions">
+                                <button class="view" onclick="viewFile('${file}')">Ver</button>
+                                <button class="edit" onclick="editFile('${file}')">Editar</button>
+                                <button class="delete" onclick="deleteFile('${file}')">Eliminar</button>
+                            </div>
+                        `;
+                        
+                        container.appendChild(fileItem);
+                    });
+                })
+                .catch(error => {
+                    showNotification('Error al cargar archivos: ' + error, 'error');
+                });
+        }
+        
+        // Crear nuevo archivo
+        function createFile() {
+            const username ="{{ username }}";
+            const filename = document.getElementById('new-filename').value.trim();
+            
+            if (!filename) {
+                showNotification('Por favor ingrese un nombre de archivo', 'error');
+                return;
+            }
+            
+            // Asegurarse que tenga extensión .txt
+            const finalFilename = filename.endsWith('.txt') ? filename : filename + '.txt';
+            
+            fetch('/create_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user: username,
+                    filename: finalFilename,
+                    content: ''
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Archivo creado exitosamente', 'success');
+                    hideCreateForm();
+                    loadFiles();
+                } else {
+                    showNotification('Error al crear archivo: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error al crear archivo: ' + error, 'error');
+            });
+        }
+        
+        // Ver contenido del archivo
+        function viewFile(filename) {
+            const username="{{ username }}";
+            fetch('/get_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user: username,
+                    filename: filename
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentFile = filename;
+                    document.getElementById('editor-title').textContent = `Viendo: ${filename}`;
+                    document.getElementById('file-content').value = data.content;
+                    document.getElementById('file-content').readOnly = true;
+                    document.getElementById('editor-container').style.display = 'block';
+                } else {
+                    showNotification('Error al leer archivo: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error al leer archivo: ' + error, 'error');
+            });
+        }
+        
+        // Editar archivo
+        function editFile(filename) {
+            const username="{{ username }}";
+            fetch('/get_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user: username,
+                    filename: filename
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentFile = filename;
+                    document.getElementById('editor-title').textContent = `Editando: ${filename}`;
+                    document.getElementById('file-content').value = data.content;
+                    document.getElementById('file-content').readOnly = false;
+                    document.getElementById('editor-container').style.display = 'block';
+                } else {
+                    showNotification('Error al leer archivo: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error al leer archivo: ' + error, 'error');
+            });
+        }
+        
+        // Guardar cambios en archivo
+        function saveFile() {
+            const username="{{ username }}";
+            if (!currentFile) return;
+            
+            const content = document.getElementById('file-content').value;
+            
+            fetch('/save_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user: username,
+                    filename: currentFile,
+                    content: content
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Archivo guardado exitosamente', 'success');
+                    closeEditor();
+                    loadFiles();
+                } else {
+                    showNotification('Error al guardar archivo: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error al guardar archivo: ' + error, 'error');
+            });
+        }
+        
+        // Eliminar archivo
+        function deleteFile(filename) {
+            const username="{{ username }}";
+            if (!confirm(`¿Estás seguro de que deseas eliminar ${filename}?`)) {
+                return;
+            }
+            
+            fetch('/delete_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user: username,
+                    filename: filename
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Archivo eliminado exitosamente', 'success');
+                    loadFiles();
+                } else {
+                    showNotification('Error al eliminar archivo: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error al eliminar archivo: ' + error, 'error');
+            });
+        }
+        
+        // Cerrar editor
+        function closeEditor() {
+            document.getElementById('editor-container').style.display = 'none';
+            document.getElementById('file-content').value = '';
+            currentFile = null;
+        }
+        
+        // Mostrar notificación
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

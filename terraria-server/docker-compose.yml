@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  terraria:
+    image: hexlo/terraria-server-docker:latest
+    container_name: terraria-server
+    restart: unless-stopped
+    ports:
+      - "7777:7777"
+    volumes:
+      - ./Worlds:/root/.local/share/Terraria/Worlds
+    environment:
+      #- world=/root/.local/share/Terraria/Worlds/MiMundo.wld
+      - autocreate=2             # 1: pequeño, 2: mediano, 3: grande
+      - worldname=MiMundo
+      - difficulty=1             # 0: Normal, 1: Experto, 2: Maestro
+      - maxplayers=8
+      - password=
+      - motd=¡Bienvenido al servidor de Terraria!
+

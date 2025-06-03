@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  api:
+    build: ./api
+    container_name: proyecto_docker_api_1  # Esto es clave para usar en tu script
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./api:/app
+    networks:
+      - app-network
+
+  apache:
+    build: ./apache
+    container_name: proyecto_docker_apache_1
+    ports:
+      - "80:80"
+    volumes:
+      - ./apache/landing:/usr/local/apache2/htdocs/landing
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
